@@ -1,1 +1,1 @@
-# zero-double-blind-core
+# zero-double-blind
