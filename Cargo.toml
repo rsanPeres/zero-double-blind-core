@@ -1,0 +1,36 @@
+[package]
+name = "zero-double-blind-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+warp = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+mongodb = { version = "2.8.2", features = ["tokio-runtime", "bson-chrono-0_4"] }
+jsonwebtoken = "9"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+dotenvy = "0.15"
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2.0.12"
+bcrypt = "0.17.0"
+async-trait = "0.1.88"
+futures = "0.3.31"
+bson = { version = "2.15", features = ["uuid-0_8"] }
+rand = "0.8.5"
+ark-r1cs-std = "0.4.0"
+ark-groth16 = { version = "0.4.0", features = ["r1cs"] }
+ark-ff = "0.4.0"
+ark-relations = "0.4.0"
+ark-sponge = "0.4.0-alpha"
+ark-serialize = "0.4.0"
+sha2 = "0.10.9"
+ark-snark = "0.4.0"
+ark-bn254 = "0.4.0"
+base64 = "0.22.1"
+ark-ec = "0.4.0-alpha.7"
+
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros"] }
