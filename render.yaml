@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: zero-double-blind-core
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: N_PATIENT
+        value: "20"
+      - key: RUST_LOG
+        value: info
