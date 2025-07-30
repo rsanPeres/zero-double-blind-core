@@ -25,6 +25,9 @@ pub enum InfrastructureError {
 
     #[error("Data error")]
     DataError,
+
+    #[error("ZK error")]
+    CryptoError
 }
 
 #[derive(Debug, Error)]

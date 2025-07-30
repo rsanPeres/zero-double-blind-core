@@ -4,6 +4,7 @@ use crate::domain::entity::user_entity::{Role, User};
 use crate::infrastructure::error::error_handler::{AppError, DomainError, InfrastructureError};
 use crate::infrastructure::interface::patient_repository::PatientRepository;
 use std::sync::Arc;
+use ark_r1cs_std::boolean::Boolean;
 
 #[derive(Clone)]
 pub struct PatientService {
@@ -76,7 +77,7 @@ impl PatientService {
     pub async fn patient_randomization(
         &self,
         logged_user: &Option<User>,
-    ) -> Result<(Vec<bool>, Vec<u8>, Vec<u8>), AppError> {
+    ) -> Result<bool, AppError> {
         // 1) Ensure user present
         let user = logged_user
             .as_ref()
@@ -99,7 +100,10 @@ impl PatientService {
                     RandomizationError::ProofGenerationError => AppError::Infra(InfrastructureError::Crypto(bcrypt::BcryptError::InvalidCost("Proof Generation error".to_string()))),
                 })?;
 
-        Ok((assignments, proof_bytes, public_inputs_bytes))
+        let result = self.rand_svc.verify_randomization_proof(&proof_bytes, &public_inputs_bytes)
+            .map_err(|e| AppError::Infra(InfrastructureError::CryptoError))?;
+
+        Ok(result)
     }
 
     pub async fn update(

@@ -1,31 +1,25 @@
 use crate::application::service::randomization_service::RandomizationError;
+use crate::infrastructure::util::hash_util::deterministic_seed_from_str;
 use crate::infrastructure::zk::randomization_circuit::RandomizationCircuit;
-use ark_bn254::Fr as Bn254Fr;
 use ark_bn254::Bn254;
-use ark_ff::UniformRand;
 use ark_groth16::Groth16;
 use ark_serialize::CanonicalSerialize;
 use ark_snark::CircuitSpecificSetupSNARK;
 use rand::rngs::OsRng;
-use std::{fs::File, path::Path};
+use std::{env, fs::File, path::Path};
 
 pub fn generate_pk_vk_to_files(
-    max_patients: usize,
     pk_path: impl AsRef<Path>,
     vk_path: impl AsRef<Path>,
+    ids: Vec<String>
 ) -> Result<(), RandomizationError> {
-    let seed: Vec<Bn254Fr> = (0..32)
-        .map(|_| Bn254Fr::rand(&mut OsRng))
-        .collect();
-
-    let ids: Vec<String> = (0..max_patients)
-        .map(|i| format!("_{}", i))
-        .collect();
+    let seed = deterministic_seed_from_str(
+        env::var("HASH_SECRET").unwrap().as_str(), 32);
 
     let circ = RandomizationCircuit {
         seed,
-        patient_ids: ids,
-        assignments: vec![None; max_patients],
+        patient_ids: ids.clone(),
+        assignments: vec![None; ids.len()],
     };
 
     let (pk, vk) = Groth16::<Bn254>::setup(circ, &mut OsRng)

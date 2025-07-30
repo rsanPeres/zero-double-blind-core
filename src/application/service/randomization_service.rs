@@ -1,9 +1,9 @@
 use crate::infrastructure::error::error_handler::AppError;
 use crate::infrastructure::zk::randomization_circuit::RandomizationCircuit;
 use crate::infrastructure::zk::trusted_setup::generate_pk_vk_to_files;
-use ark_bn254::{Bn254, Fr as Bn254Fr};
+use ark_bn254::{Bn254, Fr as Bn254Fr, Fr};
 use ark_ff::{BigInteger, PrimeField, UniformRand};
-use ark_groth16::{Groth16, ProvingKey, VerifyingKey};
+use ark_groth16::{Groth16, Proof, ProvingKey, VerifyingKey};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_snark::SNARK;
 use ark_sponge::CryptographicSponge;
@@ -11,6 +11,7 @@ use rand::rngs::OsRng;
 use sha2::{Digest, Sha256};
 use std::{env, fs, io::Read, path::Path};
 use thiserror::Error;
+use crate::infrastructure::util::hash_util::deterministic_seed_from_str;
 
 const RATE: usize = 2;
 const CAPACITY: usize = 1;
@@ -57,9 +58,6 @@ impl RandomizationService {
         let n = s.unwrap().parse::<usize>()
             .map_err(|_| AppError::Config("N_PATIENT needs to be integer".into()));
 
-        if !pk_path.exists() || !vk_path.exists() {
-            generate_pk_vk_to_files(n.unwrap(), pk_path, vk_path)?;
-        }
         Ok(RandomizationService {
             pk: load_pk(pk_path)?,
             vk: load_vk(vk_path)?,
@@ -70,16 +68,8 @@ impl RandomizationService {
         &self,
         patient_ids: Vec<String>,
     ) -> Result<(Vec<bool>, Vec<u8>, Vec<u8>), RandomizationError> {
-        let n = patient_ids.len();
-        let mut rng = OsRng;
-
-        let seed: Vec<Bn254Fr> = (0..32).map(|_| Bn254Fr::rand(&mut rng)).collect();
-
-        let mut circuit = RandomizationCircuit {
-            seed: seed.clone(),
-            patient_ids: patient_ids.clone(),
-            assignments: vec![None; n],
-        };
+        let (n, mut rng, seed, mut circuit) =
+            Self::create_circuit(&patient_ids);
 
         let mut sponge = {
             let cfg = {
@@ -97,7 +87,7 @@ impl RandomizationService {
             ark_sponge::poseidon::PoseidonSponge::new(&cfg)
         };
         sponge.absorb(&seed);
-        let hashes: Vec<Bn254Fr> = patient_ids
+        let hashes: Vec<Bn254Fr> = patient_ids.clone()
             .iter()
             .map(|id| {
                 let mut h = Sha256::new();
@@ -116,7 +106,7 @@ impl RandomizationService {
             sponge.absorb(&Bn254Fr::from(i as u64));
         }
 
-        circuit.assignments = bits.iter().copied().map(Some).collect();
+        circuit.assignments = vec![None; patient_ids.len()];
 
         let proof = Groth16::<Bn254>::prove(&self.pk, circuit, &mut rng)
             .map_err(|_| RandomizationError::ProofGenerationError)?;
@@ -132,5 +122,45 @@ impl RandomizationService {
         }
 
         Ok((bits, proof_bytes, pi_bytes))
+    }
+
+    pub fn verify_randomization_proof(
+        &self,
+        proof_bytes: &[u8],
+        public_inputs: &[u8],
+    ) -> Result<bool, String> {
+        let proof = Proof::<Bn254>::deserialize_compressed(&mut std::io::Cursor::new(proof_bytes))
+            .map_err(|e| format!("Erro ao desserializar prova: {}", e))?;
+
+        let mut inputs = Vec::new();
+        let mut cursor = std::io::Cursor::new(public_inputs);
+        while (cursor.position() as usize) < public_inputs.len() {
+            let input = Bn254Fr::deserialize_compressed(&mut cursor)
+                .map_err(|e| format!("Erro ao desserializar input público: {}", e))?;
+            inputs.push(input);
+        }
+
+        println!("Public inputs len: {}", inputs.len());
+        println!("Expected inputs in circuit: {}", self.vk.gamma_abc_g1.len() - 1);
+
+        let result = Groth16::<Bn254>::verify(&self.vk, &*inputs, &proof)
+            .map_err(|e| format!("Erro ao verificar prova: {}", e))?;
+
+        Ok(result)
+    }
+
+    fn create_circuit(patient_ids: &Vec<String>) -> (usize, OsRng, Vec<Fr>, RandomizationCircuit) {
+        let n = patient_ids.len();
+        let mut rng = OsRng;
+
+        let seed= deterministic_seed_from_str(
+            env::var("HASH_SECRET").unwrap().as_str(), 32);
+
+        let mut circuit = RandomizationCircuit {
+            seed: seed.clone(),
+            patient_ids: patient_ids.clone(),
+            assignments: vec![None; patient_ids.len()],
+        };
+        (n, rng, seed, circuit)
     }
 }

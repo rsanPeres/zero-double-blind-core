@@ -105,11 +105,9 @@ impl PatientController {
             .patient_randomization(&logged_user)
             .await
         {
-            Ok((assignments, proof_bytes, inputs_bytes)) => {
-                let resp = RandomizationResponse::new(
-                    assignments, proof_bytes, inputs_bytes);
+            Ok(result) => {
 
-                let json = warp::reply::json(&resp);
+                let json = warp::reply::json(&result);
                 Ok(warp::reply::with_status(json, StatusCode::OK))
             }
             Err(e) => Err(warp::reject::custom(e)),
