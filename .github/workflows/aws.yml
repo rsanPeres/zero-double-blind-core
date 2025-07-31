@@ -1,4 +1,4 @@
-name: Deploy via SSH to EC2
+name: Deploy zero-double-blind-core to EC2
 
 on:
   push:
@@ -19,15 +19,19 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: ".env"
-          target: "/home/ec2-user/app/.env"        # onde vai ficar o .env
+          target: "/home/ec2-user/zero-double-blind-core/.env"
 
-      - name: Setup SSH key
+      - name: Setup SSH key no runner
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+
+          # coleta a fingerprint do GitHub
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          ssh-keyscan -H ${{ secrets.SSH_HOSTNAME }} >> ~/.ssh/known_hosts
+
+          # coleta a fingerprint da sua EC2 (SSH_HOST armazena só o IP ou hostname)
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Remote deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
@@ -36,22 +40,19 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1) Criar a pasta e entrar nela
-            mkdir -p /home/ec2-user/app
-            cd /home/ec2-user/app
+            APP_DIR=/home/ec2-user/zero-double-blind-core
 
-            # 2) Se ainda não tiver .git, clona; senão, dá pull
+            # 1) Cria pasta do app (se ainda não existir) e entra nela
+            mkdir -p $APP_DIR
+            cd $APP_DIR
+
+            # 2) Clona na primeira vez ou puxa updates depois
             if [ ! -d .git ]; then
-              git clone https://github.com/rsaPeres/zero-double-blind-core.git . 
+              git clone https://github.com/${{ github.repository }}.git .
             else
               git pull origin main
             fi
 
-            # 3) Parar e subir containers
-            if command -v docker-compose; then
-              docker-compose down
-              docker-compose up -d --build
-            else
-              docker compose down
-              docker compose up -d --build
-            fi
+            # 3) Sobe containers com Docker Compose v2
+            docker compose down
+            docker compose up -d --build
