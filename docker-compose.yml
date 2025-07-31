@@ -8,7 +8,7 @@ services:
     container_name: zero_double_blind_core
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8080:3030"
     environment:
       # string de conexão MongoDB Atlas (defina em .env)
       MONGO_URI: ${MONGO_URI}
