@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 
 # Copia e compila dependências primeiro (melhora cache)
 COPY Cargo.toml Cargo.lock ./
+COPY keys/ ./keys/
 RUN mkdir src && echo 'fn main() {}' > src/main.rs
 RUN cargo build --release
 RUN rm -rf src
