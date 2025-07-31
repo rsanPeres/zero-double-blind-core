@@ -9,30 +9,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1) Faz checkout do repo no runner
       - name: Checkout do código
         uses: actions/checkout@v3
 
-      - name: Copy .env to EC2
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ec2-user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: ".env"
-          target: "/home/ec2-user/zero-double-blind-core/.env"
-
+      # 2) Prepara a chave SSH do runner
       - name: Setup SSH key no runner
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-          # coleta a fingerprint do GitHub
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-          # coleta a fingerprint da sua EC2 (SSH_HOST armazena só o IP ou hostname)
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
+      # 3) Copia TODO o diretório do projeto para a EC2
+      - name: Copy application to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "/home/ec2-user/zero-double-blind-core"
+
+      # 4) Conecta e só roda o Docker Compose na EC2
       - name: Remote deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -42,21 +41,14 @@ jobs:
           script: |
             APP_DIR=/home/ec2-user/zero-double-blind-core
 
-            # 1) Cria pasta do app (se ainda não existir) e entra nela
+            # 1) Garante diretório e entra nele
             mkdir -p $APP_DIR
             cd $APP_DIR
 
-            # 2) Clona na primeira vez ou puxa updates depois
-            
-            if [ ! -d .git ]; then
-              git init
-              git remote add origin https://github.com/${{ github.repository }}.git
-              git fetch origin main
-              git checkout -b main origin/main
-            else
-              # Atualiza tudo pra última versão limpa da main
-              git fetch origin main
-              git reset --hard origin/main
+            # 2) Verifica se docker-compose.yml existe
+            if [ ! -f docker-compose.yml ]; then
+              echo "❌ docker-compose.yml não encontrado em $APP_DIR" >&2
+              exit 1
             fi
 
             # 3) Sobe containers com Docker Compose v2
