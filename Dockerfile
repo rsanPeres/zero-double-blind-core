@@ -16,7 +16,7 @@ COPY . .
 RUN cargo build --release
 
 # Etapa 2: runtime minimalista
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 # Instalações mínimas (certificados TLS)
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
