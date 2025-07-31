@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  zero-double-blind-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zero_double_blind_core
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # string de conexão MongoDB Atlas (defina em .env)
+      MONGO_URI: ${MONGO_URI}
+      # outras variáveis da aplicação
+      JWT_SECRET: ${JWT_SECRET}
+      N_PATIENT: ${N_PATIENT}
+    volumes:
+      - ./config:/usr/src/app/config:ro
