@@ -3,6 +3,9 @@ FROM rust:1.88 as builder
 
 WORKDIR /usr/src/app
 
+# Copia o .env
+COPY .env /usr/src/app/.env
+
 # Copia todo o projeto de uma vez (inclui Cargo.toml, Cargo.lock, src/, keys/, etc)
 COPY . .
 

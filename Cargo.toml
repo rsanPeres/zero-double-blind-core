@@ -29,8 +29,6 @@ sha2 = "0.10.9"
 ark-snark = "0.4.0"
 ark-bn254 = "0.4.0"
 base64 = "0.22.1"
-ark-ec = "0.4.0-alpha.7"
-bitcode = "0.5"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros"] }
