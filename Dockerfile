@@ -9,6 +9,10 @@ COPY .env /usr/src/app/.env
 # Copia todo o projeto de uma vez (inclui Cargo.toml, Cargo.lock, src/, keys/, etc)
 COPY . .
 
+ENV MONGO_URI=$MONGO_URI
+ENV JWT_SECRET=$JWT_SECRET
+ENV HASH_SECRET=$HASH_SECRET
+
 # Compila em modo release
 RUN cargo build --release
 
