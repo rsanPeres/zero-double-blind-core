@@ -1,17 +1,19 @@
 use crate::infrastructure::error::error_handler::AppError;
+use crate::infrastructure::solana::solana_client::submit_round;
+use crate::infrastructure::util::hash_util::deterministic_seed_from_str;
 use crate::infrastructure::zk::randomization_circuit::RandomizationCircuit;
-use crate::infrastructure::zk::trusted_setup::generate_pk_vk_to_files;
+use crate::infrastructure::solana::upload_vk::run_upload_vk;
 use ark_bn254::{Bn254, Fr as Bn254Fr, Fr};
-use ark_ff::{BigInteger, PrimeField, UniformRand};
+use ark_ff::{BigInteger, PrimeField};
 use ark_groth16::{Groth16, Proof, ProvingKey, VerifyingKey};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_snark::SNARK;
 use ark_sponge::CryptographicSponge;
 use rand::rngs::OsRng;
 use sha2::{Digest, Sha256};
+use solana_sdk::pubkey::Pubkey;
 use std::{env, fs, io::Read, path::Path};
 use thiserror::Error;
-use crate::infrastructure::util::hash_util::deterministic_seed_from_str;
 
 const RATE: usize = 2;
 const CAPACITY: usize = 1;
@@ -124,7 +126,7 @@ impl RandomizationService {
         Ok((bits, proof_bytes, pi_bytes))
     }
 
-    pub fn verify_randomization_proof(
+    pub fn off_chain_verify_randomization_proof(
         &self,
         proof_bytes: &[u8],
         public_inputs: &[u8],
@@ -147,6 +149,30 @@ impl RandomizationService {
             .map_err(|e| format!("Erro ao verificar prova: {}", e))?;
 
         Ok(result)
+    }
+
+    pub fn on_chain_verify_randomization_proof(
+        &self,
+        proof_bytes: &[u8],
+        public_inputs: &[u8],
+        values : Vec<bool>
+    ) -> anyhow::Result<String> {
+        let rpc = env::var("RPC").map_err(|_| AppError::Config("RPC error".into()))?;
+        let program = env::var("PROGRAM_ID").map_err(|_| AppError::Config("program id error".into()))?;
+
+
+        let (seed, pubkey) = run_upload_vk(&self.vk).expect("Erro no upload da vk");
+
+        let result = submit_round(
+            &rpc,
+            &program,
+            &seed,
+            pubkey,
+            proof_bytes.to_vec(),
+            public_inputs.to_vec(),
+            values,
+        );
+        result
     }
 
     fn create_circuit(patient_ids: &Vec<String>) -> (usize, OsRng, Vec<Fr>, RandomizationCircuit) {

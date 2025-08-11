@@ -4,3 +4,4 @@ pub mod error;
 pub mod zk;
 pub mod database;
 pub mod util;
+pub mod solana;

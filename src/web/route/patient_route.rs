@@ -86,7 +86,7 @@ pub fn patient_route(
         )
         .boxed();
 
-    let randomize = warp::path!("patient" / "randomize")
+    let randomize = warp::path!("patient" / "randomize" / "off-chain")
         .and(warp::post())
         .and(auth.clone())
         .and(svc.clone())
@@ -97,7 +97,23 @@ pub fn patient_route(
                     .await
                     .map_err(warp::reject::custom)?
                     .ok_or_else(|| warp::reject::custom(AppError::Domain(DomainError::NotFound)))?;
-                ctrl.randomize_patients(Some(user)).await
+                ctrl.off_chain_randomize_patients(Some(user)).await
+            }
+        )
+        .boxed();
+
+    let randomize_on_chain = warp::path!("patient" / "randomize" / "on-chain")
+        .and(warp::post())
+        .and(auth.clone())
+        .and(svc.clone())
+        .and(ctrl.clone())
+        .and_then(
+            |claims: Claims, svc: UserService, ctrl: Arc<PatientController>| async move {
+                let user = svc.get_logged_user(&claims.sub)
+                    .await
+                    .map_err(warp::reject::custom)?
+                    .ok_or_else(|| warp::reject::custom(AppError::Domain(DomainError::NotFound)))?;
+                ctrl.on_chain_randomize_patients(Some(user)).await
             }
         )
         .boxed();
@@ -140,6 +156,7 @@ pub fn patient_route(
         .or(get_all)
         .or(get_ids)
         .or(randomize)
+        .or(randomize_on_chain)
         .or(update)
         .or(delete)
 }

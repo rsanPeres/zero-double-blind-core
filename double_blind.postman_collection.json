@@ -1,0 +1,382 @@
+{
+	"info": {
+		"_postman_id": "25f2b2b6-6a1f-4439-9347-075f8d2f8fa0",
+		"name": "double_blind",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14743252"
+	},
+	"item": [
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"mon@gmail.com\",\r\n  \"password\": \"1234\",\r\n  \"roles\":[\"admin\", \"blinding_admin\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "by-email",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmNjk2MTY0Yi04M2M5LTQzMjEtODYwNi00NjFkYjJjMmJmZDgiLCJleHAiOjE3NTQ2MjM3OTMsInJvbGVzIjpbImFkbWluIiwiYmxpbmRpbmdfYWRtaW4iXX0.EHiuOYmKUwo_XLhJrGOdwNiq6aVFzMdoEiaBggHkUFo",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/user/email/sol@gmail.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"user",
+						"email",
+						"sol@gmail.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"mon@gmail.com\",\r\n  \"password\": \"1234\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update-password",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOWQzMzE3ZS05ZWYxLTQzY2MtODBjMS1iM2RkNGIzMzFkNjkiLCJleHAiOjE3NTQyODc5MzEsInJvbGVzIjpbImFkbWluIl19.otX_h4j2kXNASz7OiBVLl7I7r9PxCl5NMJU0VhI40_M",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"new_password\": \"4321\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/user/password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"user",
+						"password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "interview-register",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOWQzMzE3ZS05ZWYxLTQzY2MtODBjMS1iM2RkNGIzMzFkNjkiLCJleHAiOjE3NTQyODc5MzEsInJvbGVzIjpbImFkbWluIl19.otX_h4j2kXNASz7OiBVLl7I7r9PxCl5NMJU0VhI40_M",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"_id\": \"60d5f4838b0e4c3a2f1e7a9c\",\r\n  \"title\": \"teste 1\",\r\n  \"form\": {\r\n    \"_id\": \"60d5f4838b0e4c3a2f1e7a9d\",\r\n    \"answers\": [\r\n      {\r\n        \"_id\": \"60d5f4838b0e4c3a2f1e7a9e\",\r\n        \"type_\": \"text\",\r\n        \"question\": {\r\n          \"_id\": \"60d5f4838b0e4c3a2f1e7a9f\",\r\n          \"text\": \"Como você está se sentindo hoje?\",\r\n          \"title\": \"question 1\"\r\n        },\r\n        \"value\": \"Estou me sentindo bem, obrigado.\",\r\n        \"auditable\": null\r\n      }\r\n    ],\r\n    \"patient\": {\r\n      \"_id\": \"60d5f4838b0e4c3a2f1e7aa4\",\r\n      \"group\": \"controle\",\r\n      \"group_enc\": \"grupo123\",\r\n      \"profile\": {\r\n        \"id\": \"60d5f4838b0e4c3a2f1e7aa5\",\r\n        \"age\": 45,\r\n        \"gender\": \"male\",\r\n        \"education_level\": \"college\",\r\n        \"income\": \"4000-6000\",\r\n        \"region\": \"southeast\",\r\n        \"group\": \"controle\",\r\n        \"content\": \"Nenhum comentário adicional.\",\r\n        \"data\": {\r\n          \"id\": \"60d5f4838b0e4c3a2f1e7aa6\",\r\n          \"email\": \"paciente@example.com\",\r\n          \"cpf\": \"111.222.333-44\",\r\n          \"date_of_birth\": \"1978-06-30\",\r\n          \"phone_number\": \"+55 (11) 97777-2222\",\r\n          \"gender\": \"male\",\r\n          \"first_name\": \"Carlos\",\r\n          \"last_name\": \"Oliveira\",\r\n          \"nationality\": \"Brazilian\",\r\n          \"occupation\": \"Engineer\",\r\n          \"zipcode\": \"03003-000\",\r\n          \"street\": \"Rua Teste, 300\",\r\n          \"city\": \"São Paulo\",\r\n          \"state\": \"SP\",\r\n          \"country\": \"Brazil\",\r\n          \"auditable\": null,\r\n          \"auth_user\": {\r\n            \"id\": \"60d5f4838b0e4c3a2f1e7aa7\",\r\n            \"email\": \"carlos.oliveira@example.com\",\r\n            \"login_at\": \"2025-07-20T10:15:00Z\",\r\n            \"password\": \"$2b$12$...\",\r\n            \"roles\": [\"user\"]\r\n          }\r\n        }\r\n      },\r\n      \"comment\": \"Nenhum\",\r\n      \"auditable\": null\r\n    },\r\n    \"comment\": \"Formulário completo sem observações\",\r\n    \"auditable\": null\r\n  },\r\n  \"stage\": {\r\n    \"id\": \"60d5f4838b0e4c3a2f1e7aa8\",\r\n    \"value\": \"inicial\"\r\n  },\r\n  \"date_time\": \"2025-07-20T10:15:00Z\",\r\n  \"researcher\": {\r\n    \"id\": \"60d5f4838b0e4c3a2f1e7aa9\",\r\n    \"data\": {\r\n      \"id\": \"60d5f4838b0e4c3a2f1e7aaa\",\r\n      \"email\": \"pesquisador@example.com\",\r\n      \"cpf\": \"555.666.777-88\",\r\n      \"date_of_birth\": \"1980-01-10\",\r\n      \"phone_number\": \"+55 (11) 96666-3333\",\r\n      \"gender\": \"female\",\r\n      \"first_name\": \"Ana\",\r\n      \"last_name\": \"Souza\",\r\n      \"nationality\": \"Brazilian\",\r\n      \"occupation\": \"Researcher\",\r\n      \"zipcode\": \"04004-000\",\r\n      \"street\": \"Av. Pesquisa, 400\",\r\n      \"city\": \"São Paulo\",\r\n      \"state\": \"SP\",\r\n      \"country\": \"Brazil\",\r\n      \"auditable\": null,\r\n      \"auth_user\": {\r\n        \"id\": \"60d5f4838b0e4c3a2f1e7aab\",\r\n        \"email\": \"ana.souza@example.com\",\r\n        \"login_at\": \"2025-07-20T10:15:00Z\",\r\n        \"password\": \"$2b$12$...\",\r\n        \"roles\": [\"researcher\"]\r\n      }\r\n    }\r\n  },\r\n  \"collaborators\": [\r\n    {\r\n      \"id\": \"60d5f4838b0e4c3a2f1e7aab\",\r\n      \"data\": {\r\n        \"id\": \"60d5f4838b0e4c3a2f1e7aa6\",\r\n          \"email\": \"paciente@example.com\",\r\n          \"cpf\": \"111.222.333-44\",\r\n          \"date_of_birth\": \"1978-06-30\",\r\n          \"phone_number\": \"+55 (11) 97777-2222\",\r\n          \"gender\": \"male\",\r\n          \"first_name\": \"Carlos\",\r\n          \"last_name\": \"Oliveira\",\r\n          \"nationality\": \"Brazilian\",\r\n          \"occupation\": \"Engineer\",\r\n          \"zipcode\": \"03003-000\",\r\n          \"street\": \"Rua Teste, 300\",\r\n          \"city\": \"São Paulo\",\r\n          \"state\": \"SP\",\r\n          \"country\": \"Brazil\",\r\n          \"auditable\": null,\r\n          \"auth_user\": {\r\n            \"id\": \"60d5f4838b0e4c3a2f1e7aa7\",\r\n            \"email\": \"carlos.oliveira@example.com\",\r\n            \"login_at\": \"2025-07-20T10:15:00Z\",\r\n            \"password\": \"$2b$12$...\",\r\n            \"roles\": [\"user\"]\r\n          }\r\n      }\r\n    }\r\n  ],\r\n  \"auditable\": null,\r\n  \"status\": {\r\n    \"id\": \"60d5f4838b0e4c3a2f1e7aac\",\r\n    \"value\": \"pendente\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{double-blind}}/api/interviews/researcher/60d5f4838b0e4c3a2f1e7aa9",
+					"host": [
+						"{{double-blind}}"
+					],
+					"path": [
+						"api",
+						"interviews",
+						"researcher",
+						"60d5f4838b0e4c3a2f1e7aa9"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "interview-by-researcher",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOWQzMzE3ZS05ZWYxLTQzY2MtODBjMS1iM2RkNGIzMzFkNjkiLCJleHAiOjE3NTQyODc5MzEsInJvbGVzIjpbImFkbWluIl19.otX_h4j2kXNASz7OiBVLl7I7r9PxCl5NMJU0VhI40_M",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3030/api/interviews/researcher",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"api",
+						"interviews",
+						"researcher"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "inteview-all",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOWQzMzE3ZS05ZWYxLTQzY2MtODBjMS1iM2RkNGIzMzFkNjkiLCJleHAiOjE3NTQyODc5MzEsInJvbGVzIjpbImFkbWluIl19.otX_h4j2kXNASz7OiBVLl7I7r9PxCl5NMJU0VhI40_M",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{double-blind}}/api/interviews",
+					"host": [
+						"{{double-blind}}"
+					],
+					"path": [
+						"api",
+						"interviews"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patient",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOWQzMzE3ZS05ZWYxLTQzY2MtODBjMS1iM2RkNGIzMzFkNjkiLCJleHAiOjE3NTQ2MjIyNDMsInJvbGVzIjpbImFkbWluIl19.DoDyt9by_5WPj7Bwhd65CbG2H2IGQhomBXtV4pJa1Wc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"group\": \"Treatment\",\r\n    \"phase\": \"Phase I\",\r\n    \"blinded_group\": false,\r\n    \"profile\": {\r\n      \"age\": 34,\r\n      \"gender\": \"Female\",\r\n      \"education_level\": \"Bachelor\",\r\n      \"income\": \"50k-60k\",\r\n      \"region\": \"North\",\r\n      \"group\": null,\r\n      \"content\": \"Patient enrolled in treatment arm\",\r\n      \"data\": {\r\n        \"email\": \"alice.smith@example.com\",\r\n        \"cpf\": \"123.456.789-00\",\r\n        \"date_of_birth\": \"1989-04-12\",\r\n        \"phone_number\": \"+55 11 91234-5678\",\r\n        \"gender\": \"Female\",\r\n        \"first_name\": \"Alice\",\r\n        \"last_name\": \"Smith\",\r\n        \"nationality\": \"Brazilian\",\r\n        \"occupation\": \"Engineer\",\r\n        \"zipcode\": \"01234-567\",\r\n        \"street\": \"Rua das Flores, 100\",\r\n        \"city\": \"São Paulo\",\r\n        \"state\": \"SP\",\r\n        \"country\": \"Brazil\",\r\n        \"auditable\": null,\r\n        \"auth_user\": {\r\n          \"id\": \"user-1\",\r\n          \"username\": \"alice.smith\",\r\n          \"roles\": [\"patient\"],\r\n          \"email\": \"joao.pereira@example.com\",\r\n          \"password\": \"teste\",\r\n          \"login_at\": \"2025-07-24T15:30:00Z\"\r\n        }\r\n      }\r\n    }\r\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{double-blind}}/patient",
+					"host": [
+						"{{double-blind}}"
+					],
+					"path": [
+						"patient"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "randomize-off-chain",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmNjk2MTY0Yi04M2M5LTQzMjEtODYwNi00NjFkYjJjMmJmZDgiLCJleHAiOjE3NTYwOTY4OTksInJvbGVzIjpbImFkbWluIiwiYmxpbmRpbmdfYWRtaW4iXX0.tYvf7kiHBhjaAG3rsmCxiA2iOQLZDwb1eDsdJXlyRRY",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"group\": \"Control\",\r\n    \"phase\": \"Phase II\",\r\n    \"blinded_group\": false,\r\n    \"profile\": {\r\n      \"age\": 60,\r\n      \"gender\": \"Male\",\r\n      \"education_level\": \"Master\",\r\n      \"income\": \"90k-100k\",\r\n      \"region\": \"West\",\r\n      \"group\": null,\r\n      \"content\": \"New control cohort\",\r\n      \"data\": {\r\n        \"email\": \"joao.pereira@example.com\",\r\n        \"cpf\": \"000.111.222-33\",\r\n        \"date_of_birth\": \"1963-06-18\",\r\n        \"phone_number\": \"+55 66 99876-0000\",\r\n        \"gender\": \"Male\",\r\n        \"first_name\": \"João\",\r\n        \"last_name\": \"Pereira\",\r\n        \"nationality\": \"Brazilian\",\r\n        \"occupation\": \"Architect\",\r\n        \"zipcode\": \"79012-345\",\r\n        \"street\": \"Rua Marechal Rondon, 890\",\r\n        \"city\": \"Campo Grande\",\r\n        \"state\": \"MS\",\r\n        \"country\": \"Brazil\",\r\n        \"auditable\": null,\r\n        \"auth_user\": {\r\n          \"id\": \"user-10\",\r\n          \"username\": \"joao.pereira\",\r\n          \"roles\": [\"Admin\"]\r\n        }\r\n      }\r\n    }\r\n  }"
+				},
+				"url": {
+					"raw": "{{double-blind}}/patient/randomize/off-chain",
+					"host": [
+						"{{double-blind}}"
+					],
+					"path": [
+						"patient",
+						"randomize",
+						"off-chain"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "randomize-on-chain",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmNjk2MTY0Yi04M2M5LTQzMjEtODYwNi00NjFkYjJjMmJmZDgiLCJleHAiOjE3NTYwOTY4OTksInJvbGVzIjpbImFkbWluIiwiYmxpbmRpbmdfYWRtaW4iXX0.tYvf7kiHBhjaAG3rsmCxiA2iOQLZDwb1eDsdJXlyRRY",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"group\": \"Control\",\r\n    \"phase\": \"Phase II\",\r\n    \"blinded_group\": false,\r\n    \"profile\": {\r\n      \"age\": 60,\r\n      \"gender\": \"Male\",\r\n      \"education_level\": \"Master\",\r\n      \"income\": \"90k-100k\",\r\n      \"region\": \"West\",\r\n      \"group\": null,\r\n      \"content\": \"New control cohort\",\r\n      \"data\": {\r\n        \"email\": \"joao.pereira@example.com\",\r\n        \"cpf\": \"000.111.222-33\",\r\n        \"date_of_birth\": \"1963-06-18\",\r\n        \"phone_number\": \"+55 66 99876-0000\",\r\n        \"gender\": \"Male\",\r\n        \"first_name\": \"João\",\r\n        \"last_name\": \"Pereira\",\r\n        \"nationality\": \"Brazilian\",\r\n        \"occupation\": \"Architect\",\r\n        \"zipcode\": \"79012-345\",\r\n        \"street\": \"Rua Marechal Rondon, 890\",\r\n        \"city\": \"Campo Grande\",\r\n        \"state\": \"MS\",\r\n        \"country\": \"Brazil\",\r\n        \"auditable\": null,\r\n        \"auth_user\": {\r\n          \"id\": \"user-10\",\r\n          \"username\": \"joao.pereira\",\r\n          \"roles\": [\"Admin\"]\r\n        }\r\n      }\r\n    }\r\n  }"
+				},
+				"url": {
+					"raw": "{{double-blind}}/patient/randomize/on-chain",
+					"host": [
+						"{{double-blind}}"
+					],
+					"path": [
+						"patient",
+						"randomize",
+						"on-chain"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "allpatientsIds",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmNjk2MTY0Yi04M2M5LTQzMjEtODYwNi00NjFkYjJjMmJmZDgiLCJleHAiOjE3NTQ2MjM3OTMsInJvbGVzIjpbImFkbWluIiwiYmxpbmRpbmdfYWRtaW4iXX0.EHiuOYmKUwo_XLhJrGOdwNiq6aVFzMdoEiaBggHkUFo",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{double-blind}}/patients/ids",
+					"host": [
+						"{{double-blind}}"
+					],
+					"path": [
+						"patients",
+						"ids"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "allpatients",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmNjk2MTY0Yi04M2M5LTQzMjEtODYwNi00NjFkYjJjMmJmZDgiLCJleHAiOjE3NTQ2MjM3OTMsInJvbGVzIjpbImFkbWluIiwiYmxpbmRpbmdfYWRtaW4iXX0.EHiuOYmKUwo_XLhJrGOdwNiq6aVFzMdoEiaBggHkUFo",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{double-blind}}/patients",
+					"host": [
+						"{{double-blind}}"
+					],
+					"path": [
+						"patients"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "double-blind",
+			"value": "http://localhost:3030",
+			"type": "default"
+		}
+	]
+}

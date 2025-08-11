@@ -4,7 +4,8 @@ use crate::domain::entity::user_entity::{Role, User};
 use crate::infrastructure::error::error_handler::{AppError, DomainError, InfrastructureError};
 use crate::infrastructure::interface::patient_repository::PatientRepository;
 use std::sync::Arc;
-use ark_r1cs_std::boolean::Boolean;
+use futures::future::{ok, Ready};
+use rand::Error;
 
 #[derive(Clone)]
 pub struct PatientService {
@@ -74,7 +75,7 @@ impl PatientService {
         self.repo.find_all_ids().await
     }
 
-    pub async fn patient_randomization(
+    pub async fn off_chain_patient_randomization(
         &self,
         logged_user: &Option<User>,
     ) -> Result<bool, AppError> {
@@ -100,10 +101,42 @@ impl PatientService {
                     RandomizationError::ProofGenerationError => AppError::Infra(InfrastructureError::Crypto(bcrypt::BcryptError::InvalidCost("Proof Generation error".to_string()))),
                 })?;
 
-        let result = self.rand_svc.verify_randomization_proof(&proof_bytes, &public_inputs_bytes)
+        let result = self.rand_svc.off_chain_verify_randomization_proof(&proof_bytes, &public_inputs_bytes)
             .map_err(|e| AppError::Infra(InfrastructureError::CryptoError))?;
 
         Ok(result)
+    }
+
+    pub async fn on_chain_patient_randomization(
+        &self,
+        logged_user: &Option<User>,
+    ) -> Result<bool, AppError> {
+        // 1) Ensure user present
+        let user = logged_user
+            .as_ref()
+            .ok_or_else(|| DomainError::NotFound)?;
+
+        // 2) Check BlindingAdmin role
+        if !user.clone().roles.iter().any(|r| matches!(r, Role::BlindingAdmin)) {
+            return Err(AppError::AuthError);
+        }
+
+        // 3) Fetch all patient IDs
+        let ids = self.repo.find_all_ids().await?;
+
+        // 4) Run the Groth16 randomization + proof
+        let (assignments, proof_bytes, public_inputs_bytes) =
+            self.rand_svc
+                .randomize_patients(ids)
+                .map_err(|e| match e {
+                    RandomizationError::SerializationError   => AppError::Infra(InfrastructureError::DataError),
+                    RandomizationError::ProofGenerationError => AppError::Infra(InfrastructureError::Crypto(bcrypt::BcryptError::InvalidCost("Proof Generation error".to_string()))),
+                })?;
+
+        self.rand_svc.on_chain_verify_randomization_proof(&proof_bytes, &public_inputs_bytes, assignments)
+            .map_err(|e| AppError::Infra(InfrastructureError::CryptoError))?;
+
+        Ok(true)
     }
 
     pub async fn update(

@@ -4,13 +4,21 @@ mod infrastructure;
 mod repository;
 mod web;
 
-use std::env;
 use crate::application::service::auth_service::AuthService;
 use crate::application::service::interview_service::InterviewService;
 use crate::application::service::patient_service::PatientService;
 use crate::application::service::randomization_service::RandomizationService;
 use crate::application::service::user_service::UserService;
+use crate::domain::entity::user_entity::User;
 use crate::infrastructure::database::connect_db;
+use crate::infrastructure::interface::interview_repository::InterviewRepository;
+use crate::infrastructure::interface::patient_repository::PatientRepository;
+use crate::infrastructure::interface::user_repository::UserRepository;
+use crate::infrastructure::zk::trusted_setup::generate_pk_vk_to_files;
+use crate::repository::auth_mongo_repository::AuthMongoRepository;
+use crate::repository::interview_mongo_repository::InterviewMongoRepository;
+use crate::repository::patient_mongo_repository::PatientMongoRepository;
+use crate::repository::user_mongo_repository::UserMongoRepository;
 use crate::web::controller::auth_controller::AuthController;
 use crate::web::controller::interview_controller::InterviewController;
 use crate::web::controller::patient_controller::PatientController;
@@ -22,15 +30,6 @@ use crate::web::route::user_route::user_route;
 use dotenvy::dotenv;
 use std::sync::Arc;
 use warp::Filter;
-use crate::domain::entity::user_entity::User;
-use crate::infrastructure::interface::interview_repository::InterviewRepository;
-use crate::infrastructure::interface::patient_repository::PatientRepository;
-use crate::infrastructure::interface::user_repository::UserRepository;
-use crate::infrastructure::zk::trusted_setup::generate_pk_vk_to_files;
-use crate::repository::auth_mongo_repository::AuthMongoRepository;
-use crate::repository::interview_mongo_repository::InterviewMongoRepository;
-use crate::repository::patient_mongo_repository::PatientMongoRepository;
-use crate::repository::user_mongo_repository::UserMongoRepository;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -29,6 +29,21 @@ sha2 = "0.10.9"
 ark-snark = "0.4.0"
 ark-bn254 = "0.4.0"
 base64 = "0.22.1"
+borsh = { version = "1.5", features = ["derive"] }
+shellexpand = "3.1"
+solana-sdk = { version = "=2.2.1", features = ["full"] }
+solana-client = "=2.2.1"
+openssl = { version = "0.10.72", features = ["vendored"] }
+
+solana-compute-budget-interface = { version = "=2.2.2", features = ["borsh"], optional = true }
+serde_yaml = "0.9.34+deprecated"
+anyhow = "1.0.98"
+hex = "0.4.3"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros"] }
+
+[features]
+# Ative UMA delas se quiser mandar compute budget ixs automaticamente:
+sdk114 = []                    # usa solana_sdk::compute_budget
+sdk2x  = ["solana-compute-budget-interface"]  # usa solana_compute_budget_interface

@@ -12,14 +12,14 @@ services:
       - "8080:3030"
     environment:
       # URI de conexão ao MongoDB Atlas
-      MONGODB_URI: "${MONGODB_URI}"
+      MONGO_URI: "${MONGO_URI}"
       # secret name no Secrets Manager (se você usar SDK/CLI para buscar)
       HASH_SECRET: "${HASH_SECRET}"
       # região, para o SDK AWS
       AWS_REGION: "us-east-2"
       # JWT secret e número de pacientes
       JWT_SECRET: "${JWT_SECRET}"
-      N_PATIENTS: "${N_PATIENTS}"
+      N_PATIENT: "${N_PATIENT}"
     # monta só leitura configs estáticas (ajuste o path interno se necessário)
     volumes:
       - ./config:/usr/local/share/zero-double-blind-core/config:ro

@@ -13,6 +13,15 @@ pub enum DomainError {
 
     #[error("Validation failure: {0}")]
     Validation(String),
+
+    #[error("Prova inválida")]
+    InvalidProof,
+
+    #[error("Falha ao desserializar dados")]
+    DeserializationError,
+
+    #[error("Erro on‐chain: {0}")]
+    OnChainError(String),
 }
 
 #[derive(Debug, Error)]

@@ -96,13 +96,31 @@ impl PatientController {
         }
     }
 
-    pub async fn randomize_patients(
+    pub async fn off_chain_randomize_patients(
         self: Arc<Self>,
         logged_user: Option<User>,
     ) -> Result<impl Reply, Rejection> {
         match self
             .patient_service
-            .patient_randomization(&logged_user)
+            .off_chain_patient_randomization(&logged_user)
+            .await
+        {
+            Ok(result) => {
+
+                let json = warp::reply::json(&result);
+                Ok(warp::reply::with_status(json, StatusCode::OK))
+            }
+            Err(e) => Err(warp::reject::custom(e)),
+        }
+    }
+
+    pub async fn on_chain_randomize_patients(
+        self: Arc<Self>,
+        logged_user: Option<User>,
+    ) -> Result<impl Reply, Rejection> {
+        match self
+            .patient_service
+            .on_chain_patient_randomization(&logged_user)
             .await
         {
             Ok(result) => {

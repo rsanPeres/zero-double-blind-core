@@ -1,0 +1,7 @@
+---
+json_rpc_url: https://api.devnet.solana.com
+websocket_url: ''
+keypair_path: ./id.json
+address_labels:
+  DsYafACQqg2ZnQHz7BBgcrhCqGfHREodiFz4Zs6DHP4K: System Program
+commitment: confirmed
