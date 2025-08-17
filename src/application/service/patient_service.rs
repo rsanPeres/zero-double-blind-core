@@ -4,8 +4,6 @@ use crate::domain::entity::user_entity::{Role, User};
 use crate::infrastructure::error::error_handler::{AppError, DomainError, InfrastructureError};
 use crate::infrastructure::interface::patient_repository::PatientRepository;
 use std::sync::Arc;
-use futures::future::{ok, Ready};
-use rand::Error;
 
 #[derive(Clone)]
 pub struct PatientService {
@@ -93,7 +91,7 @@ impl PatientService {
         let ids = self.repo.find_all_ids().await?;
 
         // 4) Run the Groth16 randomization + proof
-        let (assignments, proof_bytes, public_inputs_bytes) =
+        let (assignments, proof_bytes, public_inputs_bytes, _, _) =
             self.rand_svc
                 .randomize_patients(ids)
                 .map_err(|e| match e {
@@ -125,7 +123,7 @@ impl PatientService {
         let ids = self.repo.find_all_ids().await?;
 
         // 4) Run the Groth16 randomization + proof
-        let (assignments, proof_bytes, public_inputs_bytes) =
+        let (assignments, _, _, proof, big) =
             self.rand_svc
                 .randomize_patients(ids)
                 .map_err(|e| match e {
@@ -133,7 +131,7 @@ impl PatientService {
                     RandomizationError::ProofGenerationError => AppError::Infra(InfrastructureError::Crypto(bcrypt::BcryptError::InvalidCost("Proof Generation error".to_string()))),
                 })?;
 
-        self.rand_svc.on_chain_verify_randomization_proof(&proof_bytes, &public_inputs_bytes, assignments)
+        self.rand_svc.on_chain_verify_randomization_proof(&proof, &big, assignments)
             .map_err(|e| AppError::Infra(InfrastructureError::CryptoError))?;
 
         Ok(true)
