@@ -873,6 +873,8 @@ pub fn submit_round(
 
         let sig = send_tx_checked(&rpc, &payer, &[cu1, cu2, ix])?;
         eprintln!("[round] done: sig={sig}");
+
+        std::thread::sleep(Duration::from_millis(350));
         Ok(sig)
     }
 }

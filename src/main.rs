@@ -14,7 +14,7 @@ use crate::infrastructure::database::connect_db;
 use crate::infrastructure::interface::interview_repository::InterviewRepository;
 use crate::infrastructure::interface::patient_repository::PatientRepository;
 use crate::infrastructure::interface::user_repository::UserRepository;
-use crate::infrastructure::zk::trusted_setup::generate_pk_vk_to_files;
+use crate::infrastructure::zk::trusted_setup::generate_snark_keys_to_files;
 use crate::repository::auth_mongo_repository::AuthMongoRepository;
 use crate::repository::interview_mongo_repository::InterviewMongoRepository;
 use crate::repository::patient_mongo_repository::PatientMongoRepository;
@@ -55,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pk_path = "./keys/patient_random.pk";
     let vk_path = "./keys/patient_random.vk";
 
-    generate_pk_vk_to_files(pk_path, vk_path, patient_repo.find_all_ids().await.unwrap())?;
+    generate_snark_keys_to_files(pk_path, vk_path, patient_repo.find_all_ids().await.unwrap())?;
     println!("✅ Trusted setup gerado em `{}` e `{}`", pk_path, vk_path);
 
     let rand_svc = RandomizationService::new(pk_path, vk_path);

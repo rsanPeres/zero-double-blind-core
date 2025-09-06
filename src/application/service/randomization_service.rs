@@ -82,7 +82,7 @@ impl RandomizationService {
     pub fn randomize_patients(
         &self,
         patient_ids: Vec<String>,
-    ) -> std::result::Result<(Vec<bool>, Vec<u8>, Vec<u8>, Proof<Bn254>, Vec<Bn254Fr>), RandomizationError> {
+    ) -> Result<(Vec<bool>, Vec<u8>, Vec<u8>, Proof<Bn254>, Vec<Bn254Fr>), RandomizationError> {
         // monta circuito com seed, ids etc. (usa os mesmos parâmetros do circuito)
         let (n, _rng, seed, mut circuit) = Self::create_circuit(&patient_ids);
 
@@ -128,7 +128,7 @@ impl RandomizationService {
         }
 
         // o circuito só checa o compromisso público
-        circuit.assignments = vec![None; patient_ids.len()];
+        circuit.asserted_assignments = vec![None; patient_ids.len()];
 
         // 1) ÚNICO input público: Poseidon dos hashes (SEM seed)
         let ids_commit_fr = {
@@ -147,7 +147,7 @@ impl RandomizationService {
             sponge.squeeze_field_elements(1)[0]
         };
 
-        circuit.ids_commitment = Some(ids_commit_fr);
+        circuit.participant_roster_commitment = Some(ids_commit_fr);
 
         // Prova (com diagnóstico)
         let proof = crate::infrastructure::zk::prove::provar_com_diagnostico(circuit, &self.pk)
@@ -251,64 +251,6 @@ impl RandomizationService {
         ).context("falha ao enviar SubmitRound")
     }
 
-    pub fn on_chain_verify_randomization_proof2(
-        &self,
-        proof: &Proof<Bn254>,
-        public_inputs_fr: &[Bn254Fr],
-        values: Vec<bool>,
-    ) -> anyhow::Result<String> {
-        // 1) RPC/Program
-        let rpc = std::env::var("RPC_URL")
-            .or_else(|_| std::env::var("RPC"))
-            .unwrap_or_else(|_| "https://api.devnet.solana.com".to_string());
-        let program = std::env::var("PROGRAM_ID")
-            .context("PROGRAM_ID não definido no ambiente")?;
-
-        // 2) Sobe/recupera VK on-chain (VKH1)
-        let (vk_seed, vk_pk) = provision_vk(&self.vk)?;
-        let mut round_seed = make_solana_seed32();
-        if round_seed == vk_seed { round_seed = make_solana_seed32(); }
-
-        let rpc_client = solana_client::rpc_client::RpcClient::new(rpc.clone());
-        let acc = rpc_client.get_account(&vk_pk)?;
-        let head = acc.data.get(0..4).unwrap_or(&[]);
-        let head_str = std::str::from_utf8(head).unwrap_or("????");
-        anyhow::ensure!(head_str == "VKH1", "vk_pk não é VK: head={head_str}");
-
-        // 3) Inputs públicos em BE32 (N = public_inputs_fr.len(); aqui N=1)
-        let public_inputs_be = pack_public_inputs_be32(public_inputs_fr);
-        eprintln!(
-            "pi0_be32 (off-chain) prefix={:02x}{:02x}{:02x}{:02x}",
-            public_inputs_be[0], public_inputs_be[1], public_inputs_be[2], public_inputs_be[3]
-        );
-
-        // 4) Use a PROVA COMPACTA (128B). Evita problemas de orientação de G2.
-        let proof_bytes = proof_to_compact_128(proof).to_vec();
-
-        // Sanidade: a mesma prova/inputs validam off-chain com a VK usada
-        assert!(Groth16::<Bn254>::verify(&self.vk, public_inputs_fr, proof).unwrap());
-
-        // (opcional mas útil) sanity local simulando o on-chain
-        match sanity_offchain_like_onchain128(
-            vk_pk, &proof_bytes, &public_inputs_be
-        ) {
-            Ok(ok) => eprintln!("sanity (like on-chain): {}", ok),
-            Err(e) => eprintln!("sanity falhou: {e}"),
-        }
-
-        // 5) Submit (ix_data pequeno: 128B + 32B*N)
-        submit_round(
-            &rpc,
-            &program,
-            &round_seed,
-            vk_pk,
-            proof_bytes,
-            public_inputs_be,
-            values,
-        )
-            .context("falha ao enviar SubmitRound")
-    }
-
     fn create_circuit(patient_ids: &Vec<String>) -> (usize, OsRng, Vec<Fr>, RandomizationCircuit) {
         let n = patient_ids.len();
         let mut rng = OsRng;
@@ -340,10 +282,10 @@ impl RandomizationService {
         };
 
         let circuit = RandomizationCircuit {
-            seed: seed.clone(),
-            patient_ids: patient_ids.clone(),
-            assignments: vec![None; patient_ids.len()],
-            ids_commitment: Some(ids_commit_fr),
+            allocation_seed: seed.clone(),
+            participant_ids: patient_ids.clone(),
+            asserted_assignments: vec![None; patient_ids.len()],
+            participant_roster_commitment: Some(ids_commit_fr),
         };
         (n, rng, seed, circuit)
     }

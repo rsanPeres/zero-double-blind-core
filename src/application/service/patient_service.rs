@@ -7,15 +7,15 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PatientService {
-    repo: Arc<dyn PatientRepository>,
-    rand_svc: RandomizationService,
+    repository: Arc<dyn PatientRepository>,
+    randomization_service: RandomizationService,
 }
 
 impl PatientService {
     pub fn new(repo: Arc<dyn PatientRepository>, pk_path: impl AsRef<std::path::Path>, vk_path: impl AsRef<std::path::Path>) -> Result<Self, AppError> {
         let rand_svc = RandomizationService::new(pk_path.as_ref(), vk_path.as_ref())
             .map_err(|e| AppError::Infra(InfrastructureError::DataError))?;
-        Ok(Self { repo, rand_svc })
+        Ok(Self { repository: repo, randomization_service: rand_svc })
     }
 
     pub async fn register(
@@ -31,7 +31,7 @@ impl PatientService {
         if !is_admin_or_owner {
             return Err(AppError::AuthError);
         }
-        self.repo.register(patient).await
+        self.repository.register(patient).await
     }
 
     pub async fn find_by_name(
@@ -40,7 +40,7 @@ impl PatientService {
         logged_user: &Option<User>,
     ) -> Result<Vec<Patient>, AppError> {
         ensure_user_present(logged_user)?;
-        self.repo.find_by_name(name).await
+        self.repository.find_by_name(name).await
     }
 
     pub async fn find_all(
@@ -55,7 +55,7 @@ impl PatientService {
         if !allowed {
             return Err(AppError::AuthError);
         }
-        self.repo.find_all().await
+        self.repository.find_all().await
     }
 
     pub async fn find_all_ids(
@@ -70,7 +70,7 @@ impl PatientService {
         if !allowed {
             return Err(AppError::AuthError);
         }
-        self.repo.find_all_ids().await
+        self.repository.find_all_ids().await
     }
 
     pub async fn off_chain_patient_randomization(
@@ -88,18 +88,18 @@ impl PatientService {
         }
 
         // 3) Fetch all patient IDs
-        let ids = self.repo.find_all_ids().await?;
+        let ids = self.repository.find_all_ids().await?;
 
         // 4) Run the Groth16 randomization + proof
         let (assignments, proof_bytes, public_inputs_bytes, _, _) =
-            self.rand_svc
+            self.randomization_service
                 .randomize_patients(ids)
                 .map_err(|e| match e {
                     RandomizationError::SerializationError   => AppError::Infra(InfrastructureError::DataError),
                     RandomizationError::ProofGenerationError => AppError::Infra(InfrastructureError::Crypto(bcrypt::BcryptError::InvalidCost("Proof Generation error".to_string()))),
                 })?;
 
-        let result = self.rand_svc.off_chain_verify_randomization_proof(&proof_bytes, &public_inputs_bytes)
+        let result = self.randomization_service.off_chain_verify_randomization_proof(&proof_bytes, &public_inputs_bytes)
             .map_err(|e| AppError::Infra(InfrastructureError::CryptoError))?;
 
         Ok(result)
@@ -120,18 +120,18 @@ impl PatientService {
         }
 
         // 3) Fetch all patient IDs
-        let ids = self.repo.find_all_ids().await?;
+        let ids = self.repository.find_all_ids().await?;
 
         // 4) Run the Groth16 randomization + proof
-        let (assignments, _, _, proof, big) =
-            self.rand_svc
+        let (assignments, _, _, proof, public_inputs_fr) =
+            self.randomization_service
                 .randomize_patients(ids)
                 .map_err(|e| match e {
                     RandomizationError::SerializationError   => AppError::Infra(InfrastructureError::DataError),
                     RandomizationError::ProofGenerationError => AppError::Infra(InfrastructureError::Crypto(bcrypt::BcryptError::InvalidCost("Proof Generation error".to_string()))),
                 })?;
 
-        self.rand_svc.on_chain_verify_randomization_proof(&proof, &big, assignments)
+        self.randomization_service.on_chain_verify_randomization_proof(&proof, &public_inputs_fr, assignments)
             .map_err(|e| AppError::Infra(InfrastructureError::CryptoError))?;
 
         Ok(true)
@@ -147,7 +147,7 @@ impl PatientService {
         if !user.roles.iter().any(|r| matches!(r, Role::Admin)) {
             return Err(AppError::AuthError);
         }
-        self.repo.update(id, patient).await
+        self.repository.update(id, patient).await
     }
 
     pub async fn delete(
@@ -159,7 +159,7 @@ impl PatientService {
         if !user.roles.iter().any(|r| matches!(r, Role::Admin)) {
             return Err(AppError::AuthError);
         }
-        self.repo.delete(id).await
+        self.repository.delete(id).await
     }
 }
 

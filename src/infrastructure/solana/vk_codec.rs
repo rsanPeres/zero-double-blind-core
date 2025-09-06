@@ -75,7 +75,6 @@ pub fn vk_to_g16v_bytes_uncompressed(vk: &VerifyingKey<Bn254>) -> Vec<u8> {
     out
 }
 
-/////////////////////////////////////////////////////////
 fn g2_to_be128(p: &G2Affine) -> [u8; 128] {
     let mut out = [0u8; 128];
     // X = (c0,c1), Y = (c0,c1)
