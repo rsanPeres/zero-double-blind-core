@@ -1,4 +1,3 @@
-use crate::infrastructure::solana::seed_util::make_solana_seed32;
 use crate::infrastructure::solana::solana_client::upload_vk_in_chunks;
 use crate::infrastructure::solana::vk_codec::vk_to_g16v_bytes_uncompressed;
 use anyhow::{Context, Result};

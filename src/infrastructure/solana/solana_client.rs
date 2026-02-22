@@ -29,7 +29,8 @@ enum ZkIx {
     SealVk { seed: String },
     InitRound {
         round_seed: String,
-        bits_len: u32, // tamanho em BYTES do payload que você vai escrever depois
+        bits_len: u32,
+        public_inputs_len: u32,// tamanho em BYTES do payload que você vai escrever depois
     },
     WriteRoundChunk {
         round_seed: String,
@@ -414,7 +415,7 @@ fn send_tx_checked(rpc: &RpcClient, payer: &Keypair, ixs: &[Instruction]) -> Res
             }
         }
 
-        std::thread::sleep(Duration::from_millis(350));
+        std::thread::sleep(Duration::from_millis(500));
     }
 }
 
@@ -675,6 +676,9 @@ pub fn submit_round(
     public_inputs: Vec<u8>, // N*32 (Fr em BE32)
     bits: Vec<bool>,        // 1 byte/flag (coerente com on-chain atual)
 ) -> Result<String> {
+    const POST_TX_SLEEP_MS: u64 = 300;
+    let post_tx_sleep = Duration::from_millis(POST_TX_SLEEP_MS);
+
     let rpc = RpcClient::new_with_commitment(rpc_url.to_string(), CommitmentConfig::confirmed());
     let program: Pubkey = program_id.parse()?;
     let payer = payer();
@@ -698,7 +702,8 @@ pub fn submit_round(
     // Tamanho mínimo necessário para alocação
     let seed_len = round_seed_ns.len();
     let hdr_len  = 4 + 1 + 1 + 4 + seed_len + 4 + 4;
-    let need_space = hdr_len + bits_packed.len();
+    let inputs_len = public_inputs.len() + 4;
+    let need_space = hdr_len + bits_packed.len() + inputs_len;
     eprintln!(
         "[round] seed_len={seed_len}, hdr_len={hdr_len}, bits_len={}B, need_space={need_space}B",
         bits_packed.len()
@@ -720,6 +725,8 @@ pub fn submit_round(
             );
             eprintln!("[round] create_account_with_seed: space={need_space}, lamports={lamports}");
             send_tx_checked(&rpc, &payer, &[ix])?;
+            // ⬇ pausa após tx on-chain
+            thread::sleep(post_tx_sleep);
         }
     }
 
@@ -728,20 +735,12 @@ pub fn submit_round(
     let mut must_init = true;
     if let Ok(acc) = rpc.get_account(&round_pk) {
         if let Some(h) = parse_round_header_client(&acc.data) {
-            // Já inicializada
             if h.sealed {
                 bail!("round já selada; use outra seed (ex.: acrescente sufixo)");
             }
-            ensure!(
-                h.seed == round_seed_ns,
-                "round seed diverge (on-chain='{}', local='{}')",
-                h.seed, round_seed_ns
-            );
-            ensure!(
-                h.bits_len == bits_packed.len(),
-                "bits_len diverge (on-chain={}, local={}) — use outra seed",
-                h.bits_len, bits_packed.len()
-            );
+            ensure!(h.seed == round_seed_ns, "round seed diverge (on-chain='{}', local='{}')", h.seed, round_seed_ns);
+            eprintln!("[round] h.bits_len {} bits_packed.len {}", h.bits_len, bits_packed.len());
+            ensure!(h.bits_len == bits_packed.len(), "bits_len diverge (on-chain={}, local={}) — use outra seed", h.bits_len, bits_packed.len());
             start_offset = h.bytes_written as u32;
             must_init = false;
             eprintln!(
@@ -757,6 +756,7 @@ pub fn submit_round(
         ZkIx::InitRound {
             round_seed: round_seed_ns.clone(),
             bits_len: bits_packed.len() as u32,
+            public_inputs_len: public_inputs.len() as u32,
         }.serialize(&mut data)?;
         let ix = Instruction {
             program_id: program,
@@ -768,6 +768,8 @@ pub fn submit_round(
         };
         eprintln!("[round] InitRound: bits_len={}B", bits_packed.len());
         let _ = send_tx_checked(&rpc, &payer, &[ix])?;
+        // ⬇ pausa após tx on-chain
+        thread::sleep(post_tx_sleep);
         start_offset = 0;
     }
 
@@ -794,6 +796,8 @@ pub fn submit_round(
                 i, offset, chunk.len()
             );
             let _ = send_tx_checked(&rpc, &payer, &[ix])?;
+            // ⬇ pausa curta entre chunks para evitar AccountInUse/rate-limit
+            thread::sleep(post_tx_sleep);
             offset += chunk.len() as u32;
         }
     } else {
@@ -838,13 +842,14 @@ pub fn submit_round(
         eprintln!("[vk] owner={}, len={}, head={}", acc.owner, acc.data.len(), head_str);
 
         ensure!(
-        acc.data.len() >= VK_HDR_LEN && &acc.data[0..4] == b"VKH1",
-        "vk_pk inválido: head={}, len={} — verifique se está passando o MESMO vk_pk retornado pelo upload (ou se a seed não colidiu).",
-        head_str, acc.data.len()
-    );
+            acc.data.len() >= VK_HDR_LEN && &acc.data[0..4] == b"VKH1",
+            "vk_pk inválido: head={}, len={} — verifique se está passando o MESMO vk_pk retornado pelo upload (ou se a seed não colidiu).",
+            head_str, acc.data.len()
+        );
 
         // 3) Canonicalizar os inputs públicos (reduz mod q e padroniza BE32)
         let public_inputs: Vec<u8> = canonicalize_public_inputs_be32(&public_inputs)?;
+
         // --- monta ix do SubmitRound ---
         let mut data = vec![];
         ZkIx::SubmitRound {
@@ -872,6 +877,9 @@ pub fn submit_round(
         let cu2 = ComputeBudgetInstruction::set_compute_unit_price(0);
 
         let sig = send_tx_checked(&rpc, &payer, &[cu1, cu2, ix])?;
+        // ⬇ pausa final após a tx de submissão
+        thread::sleep(post_tx_sleep);
+
         eprintln!("[round] done: sig={sig}");
         Ok(sig)
     }

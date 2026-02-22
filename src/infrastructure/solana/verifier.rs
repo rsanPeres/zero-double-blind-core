@@ -105,7 +105,7 @@ pub fn sanity_offchain_like_onchain(
     pub_inputs_be: &[u8],  // N*32
     local_vk_bytes: Option<&[u8]>, // ← opcional para comparar VK local vs on-chain
 ) -> Result<bool> {
-    let rpc_url = env::var("RPC")?;
+    let rpc_url = env::var("RPC_URL")?;
 
     let (vk_payload_onchain, hash_onchain, parsed_norm) =
         load_vk_payload_from_chain(&rpc_url, vk_pk)?;
@@ -234,7 +234,7 @@ pub fn sanity_offchain_like_onchain128(
     pub_inputs_be: &[u8], // N*32 BE
 ) -> anyhow::Result<bool> {
     use solana_client::rpc_client::RpcClient;
-    let rpc_url = env::var("RPC").unwrap_or_else(|_| "http://localhost:8899".to_string());
+    let rpc_url = env::var("RPC_URL").unwrap_or_else(|_| "https://api.devnet.solana.com".to_string());
 
     // 1) Ler VK da conta e montar Groth16Verifyingkey
     let rpc = RpcClient::new(rpc_url.to_string());
